@@ -4,6 +4,7 @@ from torch.utils.data import DataLoader
 from torchvision import transforms, datasets
 from model import DiT
 from torch import nn
+from transformers import CLIPTokenizer, CLIPTextModel
 
 
 def train():
@@ -17,6 +18,10 @@ def train():
         transforms.Normalize((0.5,), (0.5,))  # Normalize to [-1, 1] range
     ])
 
+    # Load pretrained CLIP tokenizer and text encoder
+    tokenizer = CLIPTokenizer.from_pretrained("openai/clip-vit-base-patch32")
+    text_encoder = CLIPTextModel.from_pretrained("openai/clip-vit-base-patch32")
+
     # Load dataset (e.g., CIFAR-10)
     dataset = datasets.CIFAR10(root="./data", train=True, download=True, transform=transform)
     dataloader = DataLoader(dataset, batch_size=50, shuffle=True)
@@ -24,16 +29,26 @@ def train():
     model = DiT()
 
     criterion = nn.MSELoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
-    timestep_tensor = torch.rand(0, 1000)
+    optimizer = optim.Adam(model.parameters(), lr=0.0004)
 
     # Train the model
     num_epochs = 10000
     for epoch in range(num_epochs):
         for batch in dataloader:
             image_tensor, label_tensor = batch
+            # Convert labels to text descriptions
+            label_texts = [dataset.classes[label] for label in label_tensor.tolist()]  # Map integers to class names
+            label_tokens = tokenizer(label_texts, return_tensors="pt", padding=True, truncation=True)
+            label_embeddings = text_encoder(**label_tokens).pooler_output
+
+            timestep_tensor = torch.rand([image_tensor.shape[0],], device=device)
+
+            # image_tensor  # B C H W
+            # label_embeddings  # B 512 DIM
+            # timestep_tensor # B
+
             # Forward pass
-            outputs = model(image_tensor, label_tensor, timestep_tensor)
+            outputs = model(image_tensor.float(), label_embeddings.float(), timestep_tensor.float())
             loss = criterion(outputs, "targets")
 
             # Backward pass and optimization

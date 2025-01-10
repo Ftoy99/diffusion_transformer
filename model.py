@@ -1,4 +1,5 @@
 import collections
+import math
 from itertools import repeat
 from typing import List
 
@@ -40,9 +41,9 @@ class PatchEmbedding(nn.Module):
         B, C, H, W = x.shape
         assert H == self.img_size[0]
         assert W == self.img_size[1]
-        x = self.proj(x)
+        x = self.proj(x)  # convolution to make patches
         if self.flatten:
-            x = x.flatten(2).transpose(1, 2)  # BCHW -> BNC
+            x = x.flatten(2).transpose(1, 2)  # Flatten 16x16 to -> 256 # BCHW -> BNC
         x = self.norm(x)
         return x
 
@@ -113,11 +114,30 @@ def resample_patch_embed(
 
 
 class TimestepEmbedding(nn.Module):
-    def __init__(self):
+    def __init__(self, frequency_embedding_size=768):
         super().__init__()
+        self.mlp = nn.Sequential(
+            nn.Linear(1, 768),
+            nn.SiLU(),
+            nn.Linear(768, 768)
+        )
+        self.frequency_embedding_size = frequency_embedding_size
 
-    def forward(self, x):
-        return x
+    def forward(self, t):
+        t = self.timestep_embedding(t, self.frequency_embedding_size)
+        t = self.mlp(t)
+        return t
+
+    def timestep_embedding(self, t, dim, max_period=10000):
+        half = dim // 2
+        freqs = torch.exp(-math.log(max_period) * torch.arange(start=0, end=half, dtype=torch.float32) / half).to(
+            device=t.device
+        )
+        args = t[:, None].float() * freqs[None]
+        embedding = torch.cat([torch.cos(args), torch.sin(args)], dim=-1)
+        if dim % 2:
+            embedding = torch.cat([embedding, torch.zeros_like(embedding[:, :1])], dim=-1)
+        return embedding
 
 
 class LabelEmbedding(nn.Module):
@@ -129,11 +149,14 @@ class LabelEmbedding(nn.Module):
 
 
 class DiT(nn.Module):
-    def __init__(self):
+    def __init__(self, label_dim=768):
         super().__init__()
-        self.x_emb = PatchEmbedding(32, 2, 3)  # Add positional embedding here
-        self.pos_emb = ""
-        self.y_emb = LabelEmbedding()
+        self.x_emb = PatchEmbedding(32, 2, 3)
+        # nn.init.constant_(self.x_emb.bias, 0.0) # Set conv bias to 0 ? this is not needed ?
+        self.y_emb = nn.Sequential(
+            # nn.LayerNorm(label_dim),  # LayerNorm to normalize input
+            nn.Linear(label_dim, 768),  # Simple Linear layer
+        )
         self.t_emb = TimestepEmbedding()
 
     def forward(self, x, y, t):
@@ -143,7 +166,10 @@ class DiT(nn.Module):
         :param y: label
         :return:
         """
-        x = self.x_emb(x) + self.pos_emb # Add pos embedding
-        y = self.y_emb(y)
+        x = self.x_emb(x)
         t = self.t_emb(t)
+        y = self.y_emb(y) # Label
+        # F.rms_norm()
+        adaln_input = t + y # Timestep
+
         return x
