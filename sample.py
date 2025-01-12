@@ -122,6 +122,7 @@ def main(captions, size, num_sampling_steps, solver="euler", time_shifting_facto
         model_kwargs["scale_factor"] = 1.0
         model_kwargs["scale_watershed"] = 1.0
 
+        print(z.device)
         samples = ODE(num_sampling_steps, solver, time_shifting_factor).sample(
             z, model.forward_with_cfg, **model_kwargs
         )[-1]
