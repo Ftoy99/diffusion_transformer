@@ -77,13 +77,13 @@ def main():
 
     # create tokenizers
     # Load the tokenizers
-    tokenizer = transformers.T5Tokenizer.from_pretrained("google-t5/t5-small")
+    tokenizer = transformers.T5Tokenizer.from_pretrained("google-t5/t5-small").to(device)
     tokenizer.padding_side = "right"
 
     # create text encoders
     # text_encoder
 
-    text_encoder = transformers.T5EncoderModel.from_pretrained("google-t5/t5-small")
+    text_encoder = transformers.T5EncoderModel.from_pretrained("google-t5/t5-small").to(device)
 
     print(f"text encoder: {type(text_encoder)}")
 
