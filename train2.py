@@ -87,7 +87,7 @@ def main():
 
     print(f"text encoder: {type(text_encoder)}")
 
-    model = NextDiT(use_flash_attn=False, qk_norm=True, n_layers=2, cap_feat_dim=512, n_heads=4)
+    model = NextDiT(use_flash_attn=False, qk_norm=True, n_layers=2, cap_feat_dim=512, n_heads=4).to(device)
 
     # Setup optimizer (we used default Adam betas=(0.9, 0.999) and a constant
     # learning rate of 1e-4 in our paper):
@@ -121,7 +121,7 @@ def main():
     model_patch_size = model.patch_size
 
     # Note that parameter initialization is done within the DiT constructor
-    model_ema = deepcopy(model)
+    model_ema = deepcopy(model).to(device)
 
     vae = AutoencoderKL.from_pretrained("stabilityai/sdxl-vae").to(device)
 
