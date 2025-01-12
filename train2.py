@@ -43,6 +43,7 @@ def encode_prompt(prompt_batch, text_encoder, tokenizer, proportion_empty_prompt
             return_tensors="pt",
         )
 
+        text_inputs.to(device)
         text_input_ids = text_inputs.input_ids
         prompt_masks = text_inputs.attention_mask
 
