@@ -88,7 +88,7 @@ def main():
 
     print(f"text encoder: {type(text_encoder)}")
 
-    model = NextDiT(use_flash_attn=False, qk_norm=True, n_layers=16, cap_feat_dim=512, n_heads=16).to(device)
+    model = NextDiT(use_flash_attn=False, qk_norm=True, n_layers=8, cap_feat_dim=512, n_heads=8).to(device)
 
     # Setup optimizer (we used default Adam betas=(0.9, 0.999) and a constant
     # learning rate of 1e-4 in our paper):
