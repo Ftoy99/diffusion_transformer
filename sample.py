@@ -142,5 +142,5 @@ def main(captions, size, num_sampling_steps, solver="euler", time_shifting_facto
 if __name__ == '__main__':
     captions = ["dog"]
     size = 64
-    sampling_steps = 10
+    sampling_steps = 20
     main(captions, size, sampling_steps)
