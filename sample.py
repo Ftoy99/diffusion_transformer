@@ -1,3 +1,4 @@
+import datetime
 import os
 import random
 
@@ -133,7 +134,8 @@ def main(captions, size, num_sampling_steps, solver="euler", time_shifting_facto
         # Save samples to disk as individual .png files
         for i, (sample, cap) in enumerate(zip(samples, caps_list)):
             img = to_pil_image(sample.detach().numpy())
-            save_path = f"images/{solver}_{num_sampling_steps}_{i}.png"
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")  # Format: YYYYMMDD_HHMMSS
+            save_path = f"images/{solver}_{num_sampling_steps}_{timestamp}_{i}.png"
             img.save(save_path)
 
 
