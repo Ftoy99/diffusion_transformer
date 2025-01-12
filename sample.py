@@ -51,13 +51,13 @@ def encode_prompt(prompt_batch, text_encoder, tokenizer, proportion_empty_prompt
 
 def main(captions, size, num_sampling_steps, solver="euler", time_shifting_factor=1.0, do_extrapolation=False,
          cfg_scale=4.0):
-    model = NextDiT(use_flash_attn=False, qk_norm=True, n_layers=2, cap_feat_dim=512, n_heads=4)
+    model = NextDiT(use_flash_attn=False, qk_norm=True, n_layers=4, cap_feat_dim=512, n_heads=8).to(device)
 
     tokenizer = transformers.T5Tokenizer.from_pretrained("google-t5/t5-small")
     tokenizer.padding_side = "right"
 
     # text_encoder
-    text_encoder = transformers.T5EncoderModel.from_pretrained("google-t5/t5-small")
+    text_encoder = transformers.T5EncoderModel.from_pretrained("google-t5/t5-small").to(device)
 
     # vae
     vae = AutoencoderKL.from_pretrained("stabilityai/sdxl-vae").to(device)
