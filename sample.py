@@ -122,7 +122,6 @@ def main(captions, size, num_sampling_steps, solver="euler", time_shifting_facto
         model_kwargs["scale_factor"] = 1.0
         model_kwargs["scale_watershed"] = 1.0
 
-        print(z.device)
         samples = ODE(num_sampling_steps, solver, time_shifting_factor).sample(
             z, model.forward_with_cfg, **model_kwargs
         )[-1]
@@ -135,7 +134,7 @@ def main(captions, size, num_sampling_steps, solver="euler", time_shifting_facto
 
         # Save samples to disk as individual .png files
         for i, (sample, cap) in enumerate(zip(samples, caps_list)):
-            img = to_pil_image(sample.detach().numpy())
+            img = to_pil_image(sample.cpu().detach().numpy())
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")  # Format: YYYYMMDD_HHMMSS
             save_path = f"images/{solver}_{num_sampling_steps}_{timestamp}_{i}.png"
             img.save(save_path)
