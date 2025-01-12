@@ -222,7 +222,7 @@ def main():
         #     scale_grad(model, args.grad_clip / grad_norm)
 
         # Save the model every 10 steps
-        if step % 10 == 0:
+        if step % 50 == 0:
             print(f"Saving model at step {step}")
             checkpoint = {
                 'model_state_dict': model.state_dict(),
