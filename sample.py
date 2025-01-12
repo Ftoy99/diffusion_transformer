@@ -90,7 +90,7 @@ def main(captions, size, num_sampling_steps, solver="euler", time_shifting_facto
         n = len(caps_list)
         w, h = int(size), int(size)
         latent_w, latent_h = w // 8, h // 8
-        z = torch.randn([1, 4, latent_w, latent_h]).to(torch.float32)
+        z = torch.randn([1, 4, latent_w, latent_h]).to(torch.float32).to(device)
         z = z.repeat(n * 2, 1, 1, 1)
 
         with torch.no_grad():
