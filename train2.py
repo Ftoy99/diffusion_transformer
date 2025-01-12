@@ -87,7 +87,36 @@ def main():
 
     print(f"text encoder: {type(text_encoder)}")
 
-    model = NextDiT(use_flash_attn=False, qk_norm=True, n_layers=2, cap_feat_dim=512,n_heads=4)
+    model = NextDiT(use_flash_attn=False, qk_norm=True, n_layers=2, cap_feat_dim=512, n_heads=4)
+
+    # Setup optimizer (we used default Adam betas=(0.9, 0.999) and a constant
+    # learning rate of 1e-4 in our paper):
+    opt = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=0.999)
+
+    checkpoint_path = "dit_checkpoint.pth"
+
+    # Check if the checkpoint file exists
+    if os.path.exists(checkpoint_path):
+        print(f"Loading checkpoint from {checkpoint_path}")
+
+        # Load the checkpoint
+        checkpoint = torch.load(checkpoint_path)
+
+        # Load the model state dict
+        model.load_state_dict(checkpoint['model_state_dict'])
+
+        # Load the optimizer state dict
+        opt.load_state_dict(checkpoint['optimizer_state_dict'])
+
+        # Optionally, load the step if you want to resume from that exact point
+        start_step = checkpoint['step']
+
+        model = model.to(device)
+
+        print(f"Checkpoint loaded successfully, resuming from step {start_step}")
+    else:
+        print(f"Checkpoint {checkpoint_path} not found. Starting training from scratch.")
+
     print(f"DiT Parameters: {model.parameter_count():,}")
     model_patch_size = model.patch_size
 
@@ -190,6 +219,16 @@ def main():
         # grad_norm = calculate_l2_grad_norm(model)
         # if grad_norm > args.grad_clip:
         #     scale_grad(model, args.grad_clip / grad_norm)
+
+        # Save the model every 10 steps
+        if step % 10 == 0:
+            print(f"Saving model at step {step}")
+            checkpoint = {
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': opt.state_dict(),
+                'step': step,
+            }
+            torch.save(checkpoint, f"dit_checkpoint.pth")
 
         opt.step()
         update_ema(model_ema, model)
