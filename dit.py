@@ -783,7 +783,6 @@ class NextDiT(nn.Module):
         cap_mask_float = cap_mask.float().unsqueeze(-1)
         cap_feats_pool = (cap_feats * cap_mask_float).sum(dim=1) / cap_mask_float.sum(dim=1)
         cap_feats_pool = cap_feats_pool.to(cap_feats)
-        print(cap_feats_pool.device)
         cap_emb = self.cap_embedder(cap_feats_pool)
         adaln_input = t + cap_emb
 

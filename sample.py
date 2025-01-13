@@ -50,7 +50,7 @@ def encode_prompt(prompt_batch, text_encoder, tokenizer, proportion_empty_prompt
     return prompt_embeds, prompt_masks
 
 
-def main(captions, size, num_sampling_steps, solver="euler", time_shifting_factor=1.0, do_extrapolation=False,
+def main(captions, size, num_sampling_steps, solver="rk4", time_shifting_factor=1.0, do_extrapolation=False,
          cfg_scale=4.0):
     model = NextDiT(use_flash_attn=False, qk_norm=True, n_layers=4, cap_feat_dim=512, n_heads=8).to(device)
 
